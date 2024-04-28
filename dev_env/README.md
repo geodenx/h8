@@ -1,13 +1,8 @@
-# H8 開発環境構築メモ
-Hardware: AKI-H8/3048F, AKI-Mother Board, H8NIC (自作基板)
-
-
-## [GNU Development Tools for the Hitachi H8/300[HS] Series](http://h8300-hms.sourceforge.net/)
-いろいろ失敗しました。結局本家↑の通りにやったらうまくいきました。
-version もこれと同じようにしました。比較的新しい方です。
+# H8/300H 開発環境構築メモ
+Hardware: AKI-H8/3048F, AKI-Mother Board
 
 ```
-$ uname -a:
+$ uname -a
 Linux io.satellite 2.2.16-3 #1 Fri Aug 18 14:51:29 JST 2000 i686 unknown
 TurboLinux Workstation 6.0 (FTP)
 $ gcc --version
@@ -17,8 +12,9 @@ GNU Make version 3.79, by Richard Stallman and Roland McGrath.
 Built for i386-pc-linux-gnu
 ```
 
-
-## Install binutils, GCC, newlib
+## binutils, gcc, newlib, gdb
+[GNU Development Tools for the Hitachi H8/300[HS] Series](http://h8300-hms.sourceforge.net/)
+色々と試してみたが、この通りにやったら上手くいった。バージョンもこれと同じようにした。
 
 binutils
 ```
@@ -65,16 +61,13 @@ $ make check
 # make install
 ```
 
-## compile, assemble
-Linux での assemble, compile, link 方法
-
+## コンパイル、アセンブル、リンク
 from .asm
 ```
 h8300-hms-as helloworld.S -o helloworld.o
 h8300-hms-ld helloworld.o -o helloworld -T h83048F.x # requires linker script
 h8300-hms-objcopy -O srec helloworld helloworld.mot
 ```
-
 from C
 ```
 h8300-hms-gcc -mh -c led.c -o led.o
@@ -88,18 +81,15 @@ h8300-hms-objcopy -O srec led led.mot
 - start up routine: `crt0.s`
 は TECH I 『技術者のためのUNIX系OS入門』より
 
-
 - `gcc -mrelax` を使うと良いかも。http://www.ertl.ics.tut.ac.jp/~muranaka/devel/
 - `crt0.o` はアセンブルしておかなくても `gcc` で直接使える？
 
 
-## ROM writers
-hardware: AKI-H8/300H 3048F, AKI-H8 mother board
-
+## ROM ライタ
 大抵の場合、最初に RAM に ROM 転送 program を書き込んでから、user の ROM program を書き込む。
 
 ### [h8tools](http://www.linet.gr.jp/~mituiwa/#h8dev2)
-writer: `h8tools/3048eeprom`
+ライタ: `h8tools/3048eeprom`
 
 `3048tool.c` 修正
 ```
@@ -136,13 +126,12 @@ return を comment out
 
 http://strawberry-linux.com/h8/write.html
 ```
-$ make # warningでるけど、Assembler Sourceを読んでもなんでか分からないから無視
+$ make
 # make install
 $ gcc -o /usr/bin/3048tool 3048tool.c
 $ 3048tool Motrola S2 File [ serial-port ]
 ```
-Motorola S2 Fileは S"2" Formatしか受け付けない。
-よって、S2を生成する必要がある。
+Motorola S2 Fileは S"2" Formatしか受け付けない。S2を生成する必要がある。
 
 - 方法0: 最初からS2になっている場合も良くある。
 - 方法1: h8300-hms-gccで-mrelaxを付けるとアドレスを短くしようと努力してくれるらしい。
@@ -164,10 +153,8 @@ addressの長さ
 おまけ: [mot-mode.el](https://gist.github.com/geodenx/7276295dcbcab209e4edf8fc9c0f46d5)
 
 ### [Open SH/H8 writer](http://www.linet.gr.jp/~mituiwa/h8/)
-[追記] May 30, 2003
-
-h8tools が version up したものが公開されました。
-多くのデバイスに対応し、使い方も簡単なのでお勧め。
+[追記] May 30, 2003:
+h8tools が version up したものが公開された。多くのデバイスに対応し、使い方も簡単なのでお勧め。
 
 ### `h8dld.c`
 TECH I 『技術者のためのUNIX系OS入門』より
@@ -176,7 +163,7 @@ Motorola S formatとbinary両方受け付けるというけど…。失敗中。
 
 以下失敗記録
 
-AKI-H8のWriter Flashに付いていた3048.subをboot programとして利用
+AKI-H8 の Writer Flash に付いていた 3048.sub を boot program として利用
 ```
 $ ./dh8dld 3048.sub program.bin
 ```
@@ -189,7 +176,7 @@ $ h8300-hms-objcopy -O binary helloworld helloworld.bin
 ```
 $ ./h8dld 3048.sub program.bin
 ```
-でやってみたら書き込めた
+でやってみたら書き込めた。
 ```
 $ ./h8dld helloworld.bin 3048.sub
       634/      634      100%
@@ -199,16 +186,15 @@ Please Hit Enter key to start  download rom program.
 ```
 ここで普通に何か押すとしばらくして終る。
 
-そこで、`3048.sub`をbinaryにしてhelloworldを`.mot`にすればいいのか。
-`3048.sub`は`.mot`形式なのでこれからどうやって、binaryにすればいいの？
+そこで、`3048.sub` を binary にし helloworld を `.mot` にすればいいのか。
+`3048.sub` は `.mot` 形式なのでこれからどうやって、binaryにすればいい？
 ```
 $ ./h8dld 3048.sub program.mot
 ```
-も失敗。一個も書き込めない。
+も失敗。
 
 ### [h8comm](http://iwatam-server.dyndns.org/hardware/h8comm/index.html)
-ちょっと試したけど、失敗中。
-これは.motではなくて.binを受け付けるらしい。
+少し試したが、失敗中。これは `.mot` ではなくて `.bin` を受け付けるらしい。
 
 
 ## Monitor
@@ -296,13 +282,14 @@ H8/3048F> exec fff110
 - stack領域って？ldscriptでmonitor以外のところに割り当てたけどいいの？Vectorとか。割り込みはどうなるのか。
 
 > なお、プログラムは、jsr命令で実行されますので、rts命令で モニターに戻ります。
+
 を試してみる。今は強制終了で終らせている。というか、H8内部のProgramは周り続けている。
 
-rtsってCだとどうするの？
+#### `rts`、Cだとどう書く？
 ```
 asm("rts");
 ```
-これで良いようです。
+
 
 ### Hitachi's monitor for AKI-H8
 HitachiのWebからAKI-H8用のMonitor programをdownload。[akih8.zip](http://www.hitachisemiconductor.com/sic/jsp/japan/jpn/Sicd/Japanese/Seminar/down.htm)
@@ -879,8 +866,8 @@ P1,2,3,8-3(^CS1)はSRAMの制御線になるので、user programで触っては
 
 
 ## Reference
-- TECH I 『技術者のためのUNIX系OS入門』 CQ Publishing<br />
-- Tr技 2002 3月
+- TECH I 『技術者のためのUNIX系OS入門』 CQ Publishing
+- トランジスタ技術 2002年3月号
 - Hitachi Manual 各種
 - H8マイコン完全マニュアル
 - H8ビギナーズガイド
