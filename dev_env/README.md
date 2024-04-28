@@ -232,7 +232,7 @@ H8/3048F> dump 0000
 
 H8/3048F ldscript
 
-![ldscript.png](ldscript.map.png)
+![ldscript.png](ldscript.png)
 
 monitor (3048mon)上で動くProgram (.mot)を作る。
 [h83048Fmon.x](https://www.dropbox.com/s/a3xing6yv2go0vr/h83048Fmon.x?dl=0)
@@ -607,13 +607,12 @@ srec-file.mot     : Sフォーマットファイル出力ファイル名
 ```
 
 ### `a38h.exe` on wine
-wineをinstallし、
 ```
 $ wine a38h.exe MBTEST.MAR
 $ wine l38h.exe MBTEST.OBJ
 $ wine c38h.exe MBTEST.ASM
 ```
-で、MBTEST.MOTが生成される。
+で、`MBTEST.MOT` が生成される。
 
 
 ### Reference
