@@ -106,8 +106,8 @@ writer: `h8tools/3048eeprom`
 97,103c97,103
 <     tcsetpgrp(TheFd,getpgrp());
 <     tcgetattr(TheFd,&TheTty);
-<     cfsetispeed(&TheTty,<font color="red">B</font>9600);
-<     cfsetospeed(&TheTty,<font color="red">B</font>9600);
+<     cfsetispeed(&TheTty,B9600);
+<     cfsetospeed(&TheTty,B9600);
 <     TheTty.c_cflag |= HUPCL | CLOCAL ;
 <     TheTty.c_cflag &= ~( PARENB | CSTOPB );
 <     cfmakeraw(&TheTty);
@@ -621,3 +621,266 @@ $ wine c38h.exe MBTEST.ASM
 - `hellowworld.S` TECH I 『技術者のためのUNIX系OS入門』
 - `h8300-hms-gcc -mh -S led.c` で吐き出されたアセンブラ `led.s`
 - 別のサンプル [3.S](https://www.dropbox.com/s/uipx94n0ww58cex/3.S?dl=0) SW, LED動作確認
+
+## C Programming with GNU Tools
+- [lcd.c](https://www.dropbox.com/s/i9fmc8aw29ls97k/lcd.c?dl=0)
+- ~~3048fnew.h~~
+AKI-mother BoardでLCD表示Routineを公開されている方が居たので、GCCに移植して利用してみた。
+LED点灯後、あるいはSw0押した後LCDに文字列を出力
+
+- [int.c](https://www.dropbox.com/s/ej6ydtp7tjox0nh/int.c?dl=0)
+- ~~3048fnew.h~~
+- 割り込みサンプルプログラム (Hitachi monitor: ldscript h83048Fhmon.x用)
+
+header fileは、Renesasさんが最新のincludeファイルを配布していますので、そちらを利用下さい。
+ただし、modeによっては、
+```
+#define DMAC0A  (*(volatile struct st_sam   *)0xFFFF20) /* DMAC 0A Addr */
+```
+を、
+```
+#define DMAC0A  (*(volatile struct st_sam   *)0xFFF20) /* DMAC 0A Addr */
+```
+のように、20-bit address 空間に書き換えてやる必要があります。
+さらに、header file は version up にともない、レジスタの名前の付け方のポリシー変更されています。
+`int.c` の内部も適当に書き換えて下さい。このポリシーについては Renesas のウェブに詳しく書かれています。
+
+- http://www.niigata-pc.ac.jp/~namikata/freebsd/h8/
+- http://www.tt.rim.or.jp/~hoso/H8/
+- sample-gcc: http://www.ertl.ics.tut.ac.jp/~muranaka/h8/
+
+
+## GDB
+
+### [simulation](http://www.tt.rim.or.jp/~hoso/H8/#test-gdbsim)
+```
+$ h8300-hms-gcc -o int -g -mh int.c
+$ h8300h-hms-gdb int
+GNU gdb 5.1.1
+Copyright 2002 Free Software Foundation, Inc.
+GDB is free software, covered by the GNU General Public License, and you are
+welcome to change it and/or distribute copies of it under certain conditions.
+Type "show copying" to see the conditions.
+There is absolutely no warranty for GDB.  Type "show warranty" for details.
+This GDB was configured as "--host=i686-pc-linux-gnu --target=h8300-hms"...
+(gdb) set machine h8300h
+(gdb) target sim
+Connected to the simulator.
+(gdb) load
+Loading section .text, size 0x274 vma 0x100
+Loading section .data, size 0x298 vma 0x374
+Loading section .stack, size 0x4 vma 0x3fffc
+Start address 0x102
+Transfer rate: 10368 bits in <1 sec.
+(gdb) run
+Starting program: ~/gnu/int
+
+Program received signal SIGINT, Interrupt.
+0x00000240 in waittimer () at int.c:55
+55     while ((ITU0.TSR.BYTE& 1) == 0);
+(gdb) quit
+The program is running.  Exit anyway? (y or n) y
+```
+
+### remote debug
+gdb 5.1.1 に [h8300-hms-gdb-5.0-HITACHI_MON-1.tar.gz](http://homepage2.nifty.com/t_yasui/micro_mouse/h8/GCC-Cross3.html) (GDB: 5.0)
+```
+$ cd gdb-5.1.1
+$ cd gdb
+$ patch -p0 < ../../h8300-hms-gdb-5.0-HITACHI_MON-1/monitor.c.diff
+$ patch -p0 < ../../h8300-hms-gdb-5.0-HITACHI_MON-1/remote-hms.c.diff # 失敗するので手動 patch
+$ cd ..
+$ mkdir objdir
+$ cd objdir
+$ ../configure --prefix=/usr/local --target=h8300-hms
+$ gmake CFLAGS="-O2 -fomit-frame-pointer" all
+# gmake install
+```
+
+```
+$ h8300-hms-gcc -g -mh -c int.c -o int.o
+$ h8300-hms-ld -T h83048Fhmon.x crt0.o int.o -o int
+$ h8300-hms-gdb int
+GNU gdb 5.1.1
+Copyright 2002 Free Software Foundation, Inc.
+GDB is free software, covered by the GNU General Public License, and you are
+welcome to change it and/or distribute copies of it under certain conditions.
+Type "show copying" to see the conditions.
+There is absolutely no warranty for GDB.  Type "show warranty" for details.
+This GDB was configured as "--host=i686-pc-linux-gnu --target=h8300-hms"...
+(gdb) set machine h8300h
+(gdb) set remotebaud 19200
+(gdb) target hms /dev/ttyS0
+Remote target hms connected to /dev/ttyS0
+0x00000000 in ?? ()
+(gdb) load
+.vectors : 0x00fff000 .. 0x00fff0f4
+.text : 0x00fff100 .. 0x00fff2b6
+.tors : 0x00fff2b6 .. 0x00fff2b6
+.data : 0x00fffb00 .. 0x00fffb00
+.stack : 0x00ffff0c .. 0x00ffff0c
+Transfer rate: 5456 bits in <1 sec.
+(gdb) run
+Starting program: ~/gnu/int
+[C-c C-c]
+Interrupted while waiting for the program.
+Give up (and stop debugging it)? (y or n) y
+(gdb) quit
+```
+実行はできる~~けど、breakpointの設定などが出来ない。~~
+
+追記 (Sep 11, 2002)
+linker scriptの記述に間違いがありbreak pointの設定ができないことをご指摘頂きました。
+ありがとうございました。
+```
+MEMORY
+{
+ vectors : o = 0xfff000, l = 0x00100
+ rom     : o = 0xfff100, l = 0x00a00
+ ram     : o = 0xfffb00, l = 0x0040c
+ stack   : o = 0xffff0c, l = 0x00004
+}
+```
+これでは、Mode 7(H8/3048F)の場合1Mの空間を超えてしまうので、
+```
+MEMORY
+{
+ vectors : o = 0xff000, l = 0x00100
+ rom     : o = 0xff100, l = 0x00a00
+ ram     : o = 0xffb00, l = 0x0040c
+ stack   : o = 0xfff0c, l = 0x00004
+}
+```
+このようにすることで、正しいアドレスを日立モニタに伝える事ができ break porint の設定ができました。
+16M 空間の Mode の場合は前者の linker script で動作しました。(日立モニタ用に修正したgdb 5.2.1で確認)
+
+
+[gdb-hmon](http://www.tt.rim.or.jp/~hoso/H8/#gdb-remote) (GDB: 4.17)
+
+### `gdb-mode.el`
+`M-x gdb [RET] h8300-hms-gdb foo [RET]`
+
+`M-x 2` で window を分割し Source File を表示すると実行行に `=>` を表示してくれる。
+
+
+## RAM 増設
+HM628128 (Hitachi 1Mbit SRAM)をAKI-H8/3048Fに増設
+
+Mode 5 (Inner ROM enable, 1M Byte mode)
+
+配線: Tr技2001 9月 p.184
+AKI-H8 (CN5-3,4 ジャンパ接続) (Mode 5)
+
+Monitor: RAM増設に伴いHitachi monitorを修正
+拡張ボード用ROMモニタ [make-300hmoni.lzh](http://www.ertl.ics.tut.ac.jp/~muranaka/h8/) を利用する。
+やり方は同じで、`monitor.sub`, `Monitor.src` を以下の様に書き換えアセンブル、リンクし `monitor.MOT` を生成。
+
+`300hmoni/bat/monitor.sub`
+```
+INPUT monitor
+INPUT cmd01,cmd02,cmd03,cmd04,cmd05,cmd06,cmd07,cmd08,cmd09,cmd10
+INPUT cmd11,cmd12,cmd13,cmd14,cmd15,cmd16,cmd17,cmd18,cmd19,cmd20
+INPUT cmd21,      cmd23,cmd24,cmd25,      cmd27,cmd28,cmd29,cmd30
+INPUT cmd31,cmd32,cmd33,cmd34,cmd35,cmd36,cmd37,cmd38
+INPUT dmy26,dmy39
+INPUT mod01,mod02,mod03,mod04,mod05,mod06,mod07,mod08,mod09,mod10
+INPUT mod11,mod12,mod13,mod14,mod15,mod16,mod17,mod18,mod19,mod20
+INPUT mod21,mod22,mod23,mod24,mod25,mod26,mod27,mod28,mod29,mod30
+INPUT mod31,mod32,mod33,mod34,mod35,      mod37,mod38,mod39
+INPUT advanced
+INPUT cpu01,cpu02,cpu03,cpu04
+DEFINE  $BRR(19)
+DEFINE  $STACK(03FFFC)
+PRINT   MONITOR.MAP
+OUTPUT  MONITOR.ABS
+START   VECTOR(0),ROM(130),RAM(0FEF10),USER(20000),SCI(0FFFFB8)
+EXIT
+```
+
+```
+DEFINE  $BRR(0C)
+```
+とすると、38400 bps になる。
+
+`300hmoni/Monitor.src`
+```
+;************************************************************************
+;*      H8/300H Monitor Program (Advanced Mode)         Ver. 2.2A       *
+;*              Copyright (C) Hitachi, Ltd. 1995                        *
+;*              Copyright (C) Hitachi Microcomputer System, Ltd. 1995   *
+;************************************************************************
+                .PROGRAM  INITIALIZE            ; Program Name
+                .CPU      300HA                 ; CPU is H8/300H Advanced
+                .SECTION  ROM,CODE,ALIGN=2      ; ROM Area Section
+;************************************************************************
+;*      Export Define                                                   *
+;************************************************************************
+                .EXPORT _INITIALIZE             ; User Initialize Module
+
+ABWCR:          .EQU    H'FFFFEC
+ASTCR:          .EQU    H'FFFFED
+WCR:            .EQU    H'FFFFEE
+WCER:           .EQU    H'FFFFEF
+P1_DDR:         .EQU    H'FFFFC0
+P2_DDR:         .EQU    H'FFFFC1
+P5_DDR:         .EQU    H'FFFFC8
+P8_DDR:         .EQU    H'FFFFCD
+
+;************************************************************************
+;*      User Initialize Module                                          *
+;*              Input   ER5 <-- Return Address                          *
+;*              Output  Nothing                                         *
+;*              Used Stack Area --> 0(0) Byte                           *
+;************************************************************************
+_INITIALIZE:
+; RAM用初期化
+;  MOV.B #H'FD, R0L
+;  MOV.B R0L, @ABWCR:8 ; CS1領域バス幅16ビット(P4:D0-D7)
+;  MOV.B #H'FD, R0L
+;  MOV.B R0L, @ASTCR:8 ; CS1領域2ステートアクセス
+  MOV.B #H'FF, R0L
+  MOV.B R0L, @P1_DDR ; P1をアドレスバス(A0-A7)
+  MOV.B R0L, @P2_DDR ; P2をアドレスバス(A8-A15)
+  MOV.B R0L, @P5_DDR ; P5をアドレスバス(A16-A19)
+  MOV.B #H'E8, R0L
+  MOV.B R0L, @P8_DDR ; P8-3 CS1出力
+
+  JMP @ER5  ; Goto Monitor Program
+  .END   ;
+```
+[monitor.MOT](https://www.dropbox.com/s/5p9rrxmh8cg8bpt/monitor.MOT?dl=0)
+
+ldscript: [h83048Frhmon.x](https://www.dropbox.com/s/gfjq734tr6be0qq/h83048Frhmon.x?dl=0)
+```
+vectors : o = 0x20000, l = 0x00100
+rom     : o = 0x20100, l = 0x1FEFC
+ram     : o = 0xFF08C, l = 0x00E80
+stack   : o = 0x3FFFC, l = 0x00004
+```
+
+samples
+- <a href="https://www.dropbox.com/s/481hdlx8hiv1h8d/int_nic.c?dl=0">int_nic.c</a>
+- <a href="https://www.dropbox.com/s/lrque547e0n13or/noi_nic.c?dl=0">noi_nic.c</a>
+
+P1,2,3,8-3(^CS1)はSRAMの制御線になるので、user programで触ってはならない。
+
+### Reference
+- http://www.niigata-pc.ac.jp/~namikata/freebsd/h8/
+- http://www.tt.rim.or.jp/~hoso/H8/
+
+
+## OS
+- [uClinux-h8](https://sourceforge.jp/projects/uclinux-h8/)
+  - [uClinux](http://www.uclinux.org/)
+  - [uClinux for H8](https://geodenx.blogspot.com/p/uclinux.html)
+- [TOPPERS/JSP](http://www.toppers.jp/)
+- [HOS](https://sourceforge.jp/projects/hos/)
+  - [HOS (gnu)](http://www.tt.rim.or.jp/~hoso/H8/)
+
+
+## Reference
+- TECH I 『技術者のためのUNIX系OS入門』 CQ Publishing<br />
+- Tr技 2002 3月
+- Hitachi Manual 各種
+- H8マイコン完全マニュアル
+- H8ビギナーズガイド
