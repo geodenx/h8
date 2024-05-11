@@ -49,10 +49,10 @@ PB7 - R/~W
 
 ### Evaluation Board
 ![h8nich](h8nich.jpg)
-- PCB for UNIX: [h8nic4.pcb](h8nic4.pcb)
-- pattern: [h8nic4_group1.pdf](h8nic4_group1.pdf)
-- silk: [h8nic4_componentsilk.pdf](h8nic4_componentsilk.pdf)
-- photo: [DSCF0045s.jpg](DSCF0045s.jpg), [DSCF0046s.jpg](DSCF0046s.jpg)
+- PCB for UNIX: [h8nic4.pcb](pcb/h8nic4.pcb)
+- pattern: [h8nic4_group1.pdf](pcb/h8nic4_group1.pdf)
+- silk: [h8nic4_componentsilk.pdf](pcb/h8nic4_componentsilk.pdf)
+- photo: [DSCF0045s.jpg](pcb/DSCF0045s.jpg), [DSCF0046s.jpg](pcb/DSCF0046s.jpg)
 - Issue: RS232C の Rx, Tx が反対
 - GNDパターンはありません。ベタグランドです。基板の製造方法によって GND が消えてしまいます。
 
@@ -185,13 +185,13 @@ A1 も浮いていますが GND に落し、A0, A1, A2 を 000 に設定しま�
 - [H8開発環境構築メモ](../dev_env)
 - トランジスタ技術 2001年 1月号, 9月号
 - H8/3048シリーズ各種マニュアル
-- [RTL8019AS Data sheet](http://www.realtek.com.tw/)
-- [TOPPERS/JSP](http://www.ertl.jp/TOPPERS/)
+- RTL8019AS Data sheet
+- TOPPERS/JSP
 - [GNU Development Tools for the Hitachi H8/300HS Series](http://h8300-hms.sourceforge.net/)
-- [RedHat GNUPro Toolkit Manuals](http://www.redhat.com/docs/manuals/gnupro/)
-- [RedHat 組み込み Download GNU Pro関連](http://www.jp.redhat.com/embedded/emb_download/)
-- [マスタリングTCP/IP入門編](http://ssl.ohmsha.co.jp/cgi-bin/menu.cgi?ISBN=4-274-06453-0)
-- [TCP/IP Illustrated, Volume 1:The Protocols W.Richard Stevens](http://www.pearsoned.co.jp/washo/inet/wa_int92-j.html)
+- RedHat GNUPro Toolkit Manuals
+- RedHat 組み込み Download GNU Pro関連
+- マスタリングTCP/IP入門編
+- TCP/IP Illustrated, Volume 1: The Protocols W.Richard Stevens
 
 
 ## Contributors
