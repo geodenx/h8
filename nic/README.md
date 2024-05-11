@@ -1,20 +1,23 @@
-# H8NIC
+# H8NIC (2002)
 
 秋月電子通商販売の H8/3048F マイコンボードと RealTek の ISA バス Ethernet コントローラ RTL8019AS を利用し、 ネットワークインタフェースカードを製作しました。
 TCP/IP プロトコルスタックを実装したスタンドアロンプログラムを構築しました。現在、NTP (UDP) と HTTP, SMTP (TCP) まで実装できました。
 
-We created a network interface card using Akizuki H8/3048F microcontroller board and RealTek ISA bus ethernet controller RTL8019AS. 
-We made a stand alone program implementing TCP/IP protocol stack including NTP (UDP), HTTP, and SMTP (TCP).
+We made a network interface card using Akizuki H8/3048F microcontroller board and RealTek ISA bus Ethernet controller RTL8019AS.
+A stand-alone program implements TCP/IP protocol stack including NTP (UDP), HTTP, and SMTP (TCP).
+
 
 
 ## Hardware
-![hw_block_diagram](hardware.gif)
+![hw_block_diagram](hardware.gif)  
 以下は自作の H8NIC (AKI-H8/3048F + RTL8019AS) についての記述です。
+
 マイコンは AKI-H8/3048F マイコンボードを利用しました。
 H8 と RTL8019AS は ISA bus を使って接続します。今回は ISA bus NIC である PLANEX ENW-2401P-T を利用しました。
 
 AKI-H8/3048F マイコンボートに 1Mbit SRAM (HM628128) を増設しました。
 増設した SRAM は無くても動くと思いますが、動作確認はしていません。増設した SRAM 上に program を置き Monitor で動作させました。
+
 文字表示用に LCD を接続します。プッシュスイッチと LED も付けました。
 
 (追記) AKI-H8LAN キット (H8/3068F + RTL8019AS) に対応しました。
@@ -46,10 +49,10 @@ PB7 - R/~W
 
 ### Evaluation Board
 ![h8nich](h8nich.jpg)
-- PCB for UNIX: [h8nic4.pcb](https://www.dropbox.com/s/1pi9zu7p755lzwg/h8nic4.pcb?dl=0)
-- pattern: [h8nic4_group1.pdf](https://www.dropbox.com/s/8zufmg603u7zz2t/h8nic4_group1.pdf?dl=0)
-- silk: [h8nic4_componentsilk.pdf](https://www.dropbox.com/s/gjtog6ofyia06b6/h8nic4_componentsilk.pdf?dl=0)
-- photo: [DSCF0045s.jpg](https://www.dropbox.com/s/ct2n51p73hmljyx/DSCF0045s.jpg?dl=0), [DSCF0046s.jpg](https://www.dropbox.com/s/4f4eky8y8eargv4/DSCF0046s.jpg?dl=0)
+- PCB for UNIX: [h8nic4.pcb](h8nic4.pcb)
+- pattern: [h8nic4_group1.pdf](h8nic4_group1.pdf)
+- silk: [h8nic4_componentsilk.pdf](h8nic4_componentsilk.pdf)
+- photo: [DSCF0045s.jpg](DSCF0045s.jpg), [DSCF0046s.jpg](DSCF0046s.jpg)
 - Issue: RS232C の Rx, Tx が反対
 - GNDパターンはありません。ベタグランドです。基板の製造方法によって GND が消えてしまいます。
 
@@ -83,7 +86,7 @@ Monitorは [hterm](http://www19.u-page.so-net.ne.jp/tc5/hamayan/hos-sh/hterm.htm
 RedBoot では TFTP なども利用できるので大きなプログラムも転送が早いです。
 
 ### Source
-[h8nic.tar.gz](https://www.dropbox.com/s/3f85vo5bvxa0x11/h8nic.tar.gz?dl=0) (Jan 24, 2003 update, RSCからCVSに移行) 
+[h8nic.tar.gz](h8nic.tar.gz) (Jan 24, 2003: RSCからCVSに移行)
 ```
 3048f.h
 3067f.h
@@ -114,16 +117,16 @@ util.[ch]: utility sub routines
 ```
 
 ### Usage
-source file 中の IP address, subnet mask, default gateway address (, NTP server address, SMTP server address, 送信先、元mail address) を書き換えてください。 
+ソースコード中の IP address, subnet mask, default gateway address (, NTP server address, SMTP server address, 送信先、元mail address) を書き換えてください。 
 
-H8NIC, AKI-H8LANキット 共通
+H8NIC, AKI-H8LAN キット 共通
 ```
 ip.c:46:unsigned long node_ip_addr = 0xAC151B16; /* 172.21.27.22 */
 ip.c:47:unsigned long subnet_mask = 0xffffff00; /* 255.255.255.0 */
 ip.c:48:unsigned long default_gateway = 0xAC151B01; /* 172.21.27.1 */
 ```
 
-以下、SMTP, NTP のみ (AKI-H8LANはNTPは移植してません。また、SMTPは簡単なハードウェアの増設が必要。)
+以下、SMTP, NTP のみ (AKI-H8LAN は NTP は移植してません。SMTP は簡単なハードウェアの増設が必要。)
 ```
 udp.c:121: unsigned long ntp_server = 0xD2ADA01B; /* ntp1.jst.mfeed.ad.jp 210.173.160.27 */
 tcp.c:270: dest.ip = 0xD3848062; /* SMTP server */
@@ -172,7 +175,7 @@ $ (hterm, kermit, h8term などsci通信Programで転送)
 ```
 
 ### EEPROM Device Driver
-![aki-h8lanh.jpg](aki-h8lanh.jpg)
+![aki-h8lanh.jpg](aki-h8lanh.jpg)  
 AKI-H8LAN キットの IC4 ソケット用の EERPOM (94LC64) のドライバを作成しました。`h8nic.tar.gz` 中にあります。 
 キットの基板（新ロット）では SDA がプルアップされているだけです。I2C の推奨回路では I2C デバイスを並列に接続できるよう SCL もプルアップする必要があります。
 A1 も浮いていますが GND に落し、A0, A1, A2 を 000 に設定しました。 
