@@ -67,7 +67,6 @@ AKI-H8LAN キットは HTTP, SMTP に対応しました。
 SMTP は EEPROM や送信ボタンなどのハードウェアの増設が必要。(Jan 23, 2003)
 
 ### Protocol Stack
-![protocol_stack](stack.gif)
 現在、UDP である NTP (Network Time Protocol), Echo,  TCP である HTTP, SMTP (Simple Mail Transfer Protocol) まで実装しています。
 ARP (Address Resolution Protocol)は対応していますし、 ICMP (Internet Control Messege Protocol)のうち Ping 応答は実装済です。
 
