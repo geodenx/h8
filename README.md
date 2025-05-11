@@ -1,3 +1,3 @@
-- [H8/300H Development Environment](dev_env)
+- [H8/300H Development Environment in 2002](dev_env)
 - [H8NIC](nic) H8 using Network Interface Card
 - [uClinux for H8](uclinux)

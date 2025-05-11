@@ -1,4 +1,4 @@
-# H8/300H 開発環境構築メモ 2002
+# H8/300H development environment in 2002
 Hardware: AKI-H8/3048F, AKI-Mother Board
 
 ```
