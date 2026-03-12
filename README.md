@@ -1,5 +1,3 @@
-Projects using H8/300H
-
 ## Table of Contents
 - [H8/300H Development Environment](dev_env) as of 2002
 - [H8NIC](nic): Connect Ethernet using ISA NIC
