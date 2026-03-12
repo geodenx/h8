@@ -21,12 +21,10 @@ H8 のバスには 16 Mbit DRAM, 10Base-T Ethernet コントローラ (RTL8019AS
 ## Hardware
 
 * schematics: [h8-cf-2.2.ce3.png](https://www.dropbox.com/s/p2b08g3kwp02htt/h8-cf-2.2.ce3.png?dl=0)
+  * Jul 8, 2004: H8:~IRQ4 - CF:HIREQ-
+  * Feb 8, 2005: CF:IREQ -> CD:-IREQ 極性修正 (polarity correction)
+  * Aug 5, 2006: H8:D0-7 -> H8:D8-15
 * wire assigments: [assign.h8-cf.txt](https://www.dropbox.com/s/imuzg3fpyafqttj/assign.h8-cf.txt?dl=0)
-
-ChangeLog
-* Jul 8, 2004: H8:~IRQ4 - CF:HIREQ-
-* Feb 8, 2005: CF:IREQ -> CD:-IREQ 極性修正 (polarity correction)
-* Aug 5, 2006: H8:D0-7 -> H8:D8-15
 
 AKI-H8LAN (AE3068)
 * H8/3069F 20MHz; Flash ROM 512kByte, RAM 16kByte, memory mapped I/O
@@ -47,7 +45,8 @@ WLI-CF-S11G (MELCO Wireless LAN CF Card)
 * 最大消費電力 (Power consumption max): 660mW (3.3V * 0.2A)
 * Intersil PRISM2.5 ISL3873B (fn8019.pdf) Integrated MAC and Baseband Processor for PCMCIA and USB
 * [melco.dump_cis.log](https://www.dropbox.com/s/n9uhi8u2c95hrrb/melco.dump_cis.log?dl=0) (dump_cis on Linux)
-* CIS Images: [telco.cis.dev.png](https://www.dropbox.com/s/uh3ji9p3jub6wd9/melco.cis.dev.png?dl=0), [melco.cis.cfg.png](https://www.dropbox.com/s/t0u45d3rriys4a3/melco.cis.cfg.png?dl=0)
+* `CISTPL_DEVICE`, `CISTPL_DEVICE_A`, `CISTPL_DEVICE_OA`: [telco.cis.dev.png](https://www.dropbox.com/s/uh3ji9p3jub6wd9/melco.cis.dev.png?dl=0)
+* `CISTPL_CONFIG`, `CISTPL_CFTABLE_ENTRY`: [melco.cis.cfg.png](https://www.dropbox.com/s/t0u45d3rriys4a3/melco.cis.cfg.png?dl=0)
 * 8bit data bus connection (ISL3873B fn8019.pdf p.13) [bus.png](https://www.dropbox.com/s/p1rsqduggbzqv8f/bus.png?dl=0)
     * `HD[15:0]`: ホストインタフェースはワードアクセスを第1に設計されているが、すべての バイトアクセスモードも完全にサポートされいてる。詳細は次のHCE01-, HCE2-の項を見よ。なお、attribute memory空間は偶数バイトアクセスのみの 仕様になっている。
     * `HCE1-`, `HCE2-`: PC Cardのサイクルタイプとサイクル幅をCE信号とともに制御する。 PC Card standardに準拠したHCE1-とHCE2-、HA0の組合せを使用することによ り、ワードとバイトアクセスがサポートされている。
@@ -67,11 +66,10 @@ CAD
 - PCB http://bach.ece.jhu.edu/~haceaton/pcb/
 - Eagle http://www.cadsoft.de/
 
-Version 2: [h8-cf-2.pcb](https://www.dropbox.com/s/zzn0vvwpryxud7h/h8-cf-2.pcb?dl=0) | [h8-cf-2.jpg](https://www.dropbox.com/s/74ykd4f3oijycxs/h8-cf-2.jpg?dl=0)
+- Version 2: [h8-cf-2.pcb](https://www.dropbox.com/s/zzn0vvwpryxud7h/h8-cf-2.pcb?dl=0) | [h8-cf-2.jpg](https://www.dropbox.com/s/74ykd4f3oijycxs/h8-cf-2.jpg?dl=0)
 ![PCB Board](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEitt6Ox7Eux4dTaXi4Q3NwQSRfT328KK2ct3irCZ8l7jgVTMQGf0iR8tnIU-a82w7hRAwPCB7Try6rQ3B3pCRxuPgS5piFrk4_7iGiuqzqST-vZb6XnKq3-sKXbmvT_ztUSoUVEBnqJR6Ba/s320/h8-cf-2.board.jpg)
-Updates from version 1: rotate CK-14 (CF), CF::RESET, CF::-CE1 = (H8:-CS3)&(h8::-CS4), 74HC32::Vcc=3.3V -> 5.0V
-
-Version 1: [h8-cf.pcb](https://www.dropbox.com/s/3ljadaqc456bhin/h8-cf.pcb?dl=0) | [h8-cf.png](https://www.dropbox.com/s/con3wsr56k9lcqe/h8-cf.png?dl=0)
+    - Updates from version 1: rotate CK-14 (CF), CF::RESET, CF::-CE1 = (H8:-CS3)&(h8::-CS4), 74HC32::Vcc=3.3V -> 5.0V
+- Version 1: [h8-cf.pcb](https://www.dropbox.com/s/3ljadaqc456bhin/h8-cf.pcb?dl=0) | [h8-cf.png](https://www.dropbox.com/s/con3wsr56k9lcqe/h8-cf.png?dl=0)
 
 ## Waveforms
 [dump.tar.bz2](https://www.dropbox.com/s/tnmtp50o2mcm1na/dump.tar.bz2?dl=0)
@@ -115,9 +113,10 @@ RedBoot> exec -c "console=ttySC1,38400n81"
 ```
 
 ### WLI-CF-S11G (BUFFALO wireless LAN CF Card)
-* 電源投入直後 (reset回路 C=10uF, R=10kohm): [reset.png](https://www.dropbox.com/s/j5y1sjnfzto07io/reset.png?dl=0)
-* 74HC14::2A(In) (RC), CF::RESET [rc.png](https://www.dropbox.com/s/u50wf8ccy6ma6m6/rc.png?dl=0)
-* CF::RESET, CF::-HIREQ [hireq.png](https://www.dropbox.com/s/n79bq19oari46sw/hireq.png?dl=0)
+電源投入直後 (reset回路 C=10uF, R=10kohm)
+* Vcc, `CF::RESET`: [reset.png](https://www.dropbox.com/s/j5y1sjnfzto07io/reset.png?dl=0)
+* 74HC14::2A(In) (RC), `CF::RESET`: [rc.png](https://www.dropbox.com/s/u50wf8ccy6ma6m6/rc.png?dl=0)
+* `CF::RESET`, `CF::-HIREQ`: [hireq.png](https://www.dropbox.com/s/n79bq19oari46sw/hireq.png?dl=0)
 
 RESET (ISL3873B fn8019.pdf p.14)  
 RESETがde-assertされたときに、CISテーブルが初期化され、初期化を完了す るとHIERQ-がhighになる(リセット直後はHIREQ-はRDY/BSYのようにふるまい、 そして、カードの利用準備ができることを示すhighになる)。CISテーブルは Flashメモリに入っていて、ファームウェアの初期化中にRAMにコピーされる。 ホストシステムはCIS情報を読み、コンフィグレーションレジスタに書き込む ことで、カードを初期化することができる。
@@ -148,7 +147,7 @@ Read attribute space (dump.c) (? state ? wait)
 ### Cross development environment `h8300-elf`
 
 binutils-2.14
-```bash
+```console
 $ tar zxvf binutils-2.14.tar.gz
 $ cd binutils-2.14
 $ ./configure --target=h8300-elf
@@ -156,11 +155,12 @@ $ make && make install
 ```
 
 gcc-3.3
-```bash
+```console
 $ tar zxvf gcc-3.3.tar.gz
 $ cd gcc-3.3
 $ patch -p1 < ../gcc-3.3.diff
-$ ./configure --target=h8300-elf --with-newlib --with-headers=$HOME/.../include --enable-languages='c'
+$ ./configure --target=h8300-elf --with-newlib \
+ --with-headers=$HOME/.../include --enable-languages='c'
 $ make && make install
 ```
 
@@ -189,6 +189,7 @@ Hitachi Monitor: テスト用。運用時には不要
 - [monitor.aki](https://www.dropbox.com/s/k6vrl9mwrimvejy/monitor.aki?dl=0)
 - [monitor.MOT](https://www.dropbox.com/s/5p9rrxmh8cg8bpt/monitor.MOT?dl=0)
 - [h83069Flmon.x](https://www.dropbox.com/s/xtefz0rbue30uti/h83069Flmon.x?dl=0) (linker script for GNU ld (h8300-elf))
+
 http://www.mechatronics.mech.tohoku.ac.jp/~kumagai/tech/h8/ の「モニタをなんとかする」を参考に。
 AKI-H8LAN (H8/3067?, 3068, 3069)用 内蔵RAMにprogramをload (DRAM未使用)
 
@@ -197,9 +198,9 @@ AKI-H8LAN (H8/3067?, 3068, 3069)用 内蔵RAMにprogramをload (DRAM未使用)
 - [uClinux-h8](http://sourceforge.jp/projects/uclinux-h8/)
 - 通常の構築、利用方法は別ページ掲載 [uClinux for H8/300H](../uclinux)
 - ビルド方法: [H8MAX](http://strawberry-linux.com/h8max/) の package を利用 
-- [wlanh8.diff](https://www.dropbox.com/s/wa7hlaon9lryzdh/wlanh8.diff?dl=0)
+- Patch: [wlanh8.diff](https://www.dropbox.com/s/wa7hlaon9lryzdh/wlanh8.diff?dl=0)
 
-```bash
+```console
 $ tar jxvf uClinux-dist-h8300.tar.bz2
 $ cd uClinux-dist-h8300
 $ patch -p1 < wlanh8.diff
@@ -289,7 +290,7 @@ Prism chipsetのdevice driverの参考資料 [driver.txt](https://www.dropbox.co
 #### Usage
 生成された kernel & userland image `image/aki3068net-image.bin` を TFTP server に置く。
 
-```bash
+```console
 $ minicom
 RedBoot> load -r -v -m TFTP -b 0x400000 aki3068net-image.bin
 RedBoot> exec -c "console=ttySC1,38400n81"
@@ -355,17 +356,11 @@ card "BUFFALO WLI-CF-S11G"
 ---
 
 ## Example Application: NTP Clock
-
-<div align="center">
+PICNIC による [NTP Clock](https://github.com/geodenx/ntp_clock) の WiFi 版
+原子時計に繋がった NTP server (ntp3.jst.mfeed.ad.jp) から timestamp を取得し、LCD に表示。
   <a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj-liVkkDdTleKLh4BwmfKrbC-ih84kXpZfv-TgTNblPu732jPqCex01gyehw_Ek0uBGP_ibPnYHasrBpCIxBtiUNT-7rCKdEw9f5RTOWsuYKFUoHcr3IsL5aNqZAzYND42NFs1uUCVfcp4/s1600/lcd.png">
     <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj-liVkkDdTleKLh4BwmfKrbC-ih84kXpZfv-TgTNblPu732jPqCex01gyehw_Ek0uBGP_ibPnYHasrBpCIxBtiUNT-7rCKdEw9f5RTOWsuYKFUoHcr3IsL5aNqZAzYND42NFs1uUCVfcp4/s1600/lcd.png" border="0" />
   </a>
-</div>
-PICNIC による [NTP Clock](https://github.com/geodenx/ntp_clock) の WiFi 版
-原子時計に繋がった NTP server (ntp3.jst.mfeed.ad.jp) から timestamp を取得し、LCD に表示。
-
-H8にcharacter LCDを接続。pin aasignは右図の通り。
-プログラムはUDP/IP ネットワークプログラムとLCD制御プログラムから成る。 デバイス依存(LCD)以外の部分をHOST PC (Linux) で開発しておき、 最後にクロス開発環境(h8300-elf)でデバイス依存のコードを追加した。
 
 [ntp.tar.bz2](https://www.dropbox.com/s/ztmppn4iturrn25/ntp.tar.bz2?dl=0)
 
@@ -408,7 +403,7 @@ RAM容量がぎりぎりなので、romfsのサイズを小さくするため、
 
 ---
 
-## Reference
+## References
 * CQ出版 [『LANによるハードウェア制御』](http://www.cqpub.co.jp/hanbai/books/37/37351.htm) 第4-8章 Appendix「μClinux/H8を利用した無線LANの実験」
 * CQ出版 [『PCカード/メモリカードの徹底研究』](http://www.cqpub.co.jp/hanbai/books/522100.htm)
 * [CFA](http://www.compactflash.org/) *CF+ and CompactFlash Specification Revision 1.4* (cfspc1_4.pdf)
