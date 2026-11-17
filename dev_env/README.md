@@ -221,7 +221,7 @@ H8/3048F ldscript
 ![ldscript.png](ldscript.png)
 
 monitor (3048mon)上で動くProgram (.mot)を作る。
-[h83048Fmon.x](https://www.dropbox.com/s/a3xing6yv2go0vr/h83048Fmon.x?dl=0)
+[h83048Fmon.x](h83048Fmon.x)
 一部抜粋
 ```
 MEMORY
@@ -334,7 +334,7 @@ ldscript
 H8/3048 Series Advanced Mode Monitor Ver. 2.2A用
 
 AKI-H8/3048F RAM増設無し
-[h83048Fhmon.x](https://www.dropbox.com/s/fcpl628sfitf5u6/h83048Fhmon.x?dl=0)
+[h83048Fhmon.x](h83048Fhmon.x)
 
 
 #### kermit
@@ -473,7 +473,7 @@ $ ./h8term
 - h83048F.x (TECH I 『技術者のためのUNIX系OS入門』より)
 
 ## GNU Assembler (GAS)
-「AKI-H8マイコン専用マザーボード」のサンプル `MBTEST.MAR`を GAS に移植。[mbtest.s](https://www.dropbox.com/s/9zmorz0zej2hx9l/mbtest.S?dl=0)
+「AKI-H8マイコン専用マザーボード」のサンプル `MBTEST.MAR`を GAS に移植。[mbtest.s](mbtest.S)
 ```
 $ h8300-hms-as mbtest.s -o mbtest.o
 $ h8300-hms-ld mbtest.o -T h83048Fmon.x -o mbtest
@@ -523,7 +523,7 @@ MOJI: .ascii "AKI-H8 "
 変数は `_start` とする(ldscript内で指定しているっぽい)。
 
 ### GCCでasemmber fileをassemble
-[mbtest.S](https://www.dropbox.com/s/9zmorz0zej2hx9l/mbtest.S?dl=0)
+[mbtest.S](mbtest.S)
 ```
 $ h8300-hms-gcc -O -mh -mint32 -g -mrelax -nostdlib \
 -T ../h83048Fmon.x mbtest.S -o mbtest.o
@@ -607,15 +607,15 @@ $ wine c38h.exe MBTEST.ASM
 - `h8tools/3048eeprom/writebyte.S` h8tools
 - `hellowworld.S` TECH I 『技術者のためのUNIX系OS入門』
 - `h8300-hms-gcc -mh -S led.c` で吐き出されたアセンブラ `led.s`
-- 別のサンプル [3.S](https://www.dropbox.com/s/uipx94n0ww58cex/3.S?dl=0) SW, LED動作確認
+- 別のサンプル [3.S](3.S) SW, LED動作確認
 
 ## C Programming with GNU Tools
-- [lcd.c](https://www.dropbox.com/s/i9fmc8aw29ls97k/lcd.c?dl=0)
+- [lcd.c](lcd.c)
 - ~~3048fnew.h~~
 AKI-mother BoardでLCD表示Routineを公開されている方が居たので、GCCに移植して利用してみた。
 LED点灯後、あるいはSw0押した後LCDに文字列を出力
 
-- [int.c](https://www.dropbox.com/s/ej6ydtp7tjox0nh/int.c?dl=0)
+- [int.c](int.c)
 - ~~3048fnew.h~~
 - 割り込みサンプルプログラム (Hitachi monitor: ldscript h83048Fhmon.x用)
 
@@ -835,9 +835,9 @@ _INITIALIZE:
   JMP @ER5  ; Goto Monitor Program
   .END   ;
 ```
-[monitor.MOT](https://www.dropbox.com/s/5p9rrxmh8cg8bpt/monitor.MOT?dl=0)
+[monitor.MOT](monitor.MOT)
 
-ldscript: [h83048Frhmon.x](https://www.dropbox.com/s/gfjq734tr6be0qq/h83048Frhmon.x?dl=0)
+ldscript: [h83048Frhmon.x](h83048Frhmon.x)
 ```
 vectors : o = 0x20000, l = 0x00100
 rom     : o = 0x20100, l = 0x1FEFC
@@ -846,8 +846,8 @@ stack   : o = 0x3FFFC, l = 0x00004
 ```
 
 samples
-- <a href="https://www.dropbox.com/s/481hdlx8hiv1h8d/int_nic.c?dl=0">int_nic.c</a>
-- <a href="https://www.dropbox.com/s/lrque547e0n13or/noi_nic.c?dl=0">noi_nic.c</a>
+- <a href="int_nic.c">int_nic.c</a>
+- <a href="noi_nic.c">noi_nic.c</a>
 
 P1,2,3,8-3(^CS1)はSRAMの制御線になるので、user programで触ってはならない。
 

@@ -1,0 +1,105 @@
+Socket 0:
+  no CIS present
+Socket 1:
+  offset 0x02, tuple 0x01, link 0x04
+    df 72 01 ff 
+  dev_info
+    fn_specific 700ns, 2kb
+
+  offset 0x08, tuple 0x1c, link 0x04
+    03 d9 01 ff 
+
+  offset 0x0e, tuple 0x18, link 0x02
+    df 01 
+  common_jedec 0xdf 0x01
+
+  offset 0x12, tuple 0x20, link 0x04
+    45 00 01 04 
+  manfid 0x0045, 0x0401
+
+  offset 0x18, tuple 0x15, link 0x17
+    04 01 53 75 6e 44 69 73 6b 00 53 44 50 00 35 2f 
+    33 20 30 2e 36 00 ff 
+  vers_1 4.1, "SunDisk", "SDP", "5/3 0.6"
+
+  offset 0x31, tuple 0x80, link 0x03
+    14 08 00 
+
+  offset 0x36, tuple 0x21, link 0x02
+    04 01 
+  funcid fixed_disk [post]
+
+  offset 0x3a, tuple 0x22, link 0x02
+    01 01 
+  disk_interface [ide]
+
+  offset 0x3e, tuple 0x22, link 0x03
+    02 0c 0f 
+  disk_features [silicon] [unique] [single]
+    [sleep] [standby] [idle] [low power]
+
+  offset 0x43, tuple 0x1a, link 0x05
+    01 07 00 02 0f 
+  config base 0x0200 mask 0x000f last_index 0x07
+
+  offset 0x4a, tuple 0x1b, link 0x0b
+    c0 c0 a1 27 55 4d 5d 75 08 00 21 
+  cftable_entry 0x00 [default]
+    [rdybsy] [mwait] [pwrdown]
+    Vcc Vnom 5V Vmin 4500mV Vmax 5500mV Ipeak 80mA
+    memory 0x0000-0x07ff @ 0x0000
+
+  offset 0x57, tuple 0x1b, link 0x06
+    00 01 21 b5 1e 4d 
+  cftable_entry 0x00
+    Vcc Vnom 3300mV Ipeak 45mA
+
+  offset 0x5f, tuple 0x1b, link 0x0d
+    c1 41 99 27 55 4d 5d 75 64 f0 ff ff 21 
+  cftable_entry 0x01 [default]
+    [rdybsy] [pwrdown]
+    Vcc Vnom 5V Vmin 4500mV Vmax 5500mV Ipeak 80mA
+    io 0x0000-0x000f [lines=4] [8bit] [16bit]
+    irq mask 0xffff [level] [pulse] [shared]
+
+  offset 0x6e, tuple 0x1b, link 0x06
+    01 01 21 b5 1e 4d 
+  cftable_entry 0x01
+    Vcc Vnom 3300mV Ipeak 45mA
+
+  offset 0x76, tuple 0x1b, link 0x12
+    c2 41 99 27 55 4d 5d 75 ea 61 f0 01 07 f6 03 01 
+    ee 21 
+  cftable_entry 0x02 [default]
+    [rdybsy] [pwrdown]
+    Vcc Vnom 5V Vmin 4500mV Vmax 5500mV Ipeak 80mA
+    io 0x01f0-0x01f7, 0x03f6-0x03f7 [lines=10] [8bit] [16bit] [range]
+    irq 14 [level] [pulse] [shared]
+
+  offset 0x8a, tuple 0x1b, link 0x06
+    02 01 21 b5 1e 4d 
+  cftable_entry 0x02
+    Vcc Vnom 3300mV Ipeak 45mA
+
+  offset 0x92, tuple 0x1b, link 0x12
+    c3 41 99 27 55 4d 5d 75 ea 61 70 01 07 76 03 01 
+    ee 21 
+  cftable_entry 0x03 [default]
+    [rdybsy] [pwrdown]
+    Vcc Vnom 5V Vmin 4500mV Vmax 5500mV Ipeak 80mA
+    io 0x0170-0x0177, 0x0376-0x0377 [lines=10] [8bit] [16bit] [range]
+    irq 14 [level] [pulse] [shared]
+
+  offset 0xa6, tuple 0x1b, link 0x06
+    03 01 21 b5 1e 4d 
+  cftable_entry 0x03
+    Vcc Vnom 3300mV Ipeak 45mA
+
+  offset 0xae, tuple 0x1b, link 0x04
+    07 00 28 d3 
+  cftable_entry 0x07
+    2 bytes in subtuples
+
+  offset 0xb4, tuple 0x14, link 0x00
+  no_long_link
+

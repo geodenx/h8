@@ -1,0 +1,270 @@
+================================================================
+Wireless networking with Linux and IEEE 802.11b
+http://ozlabs.org/people/dgibson/papers/
+PostScript
+http://ozlabs.org/people/dgibson/papers/wireless_networking.ps.gz
+
+Chapter 4 Linux Support によると、PRISMのドライバを書くために使える情報源は、
+    NDAのIntersil Driver Programmers's Manual
+    他のドライバ
+        (特にorinocoは他のドライバから推測された情報に基づいて幅広く書かれているので参考になる)
+    Reverse engineering
+となる。
+尚、IntersilはPRISM をGlobespanVirataに売却。
+Section 4.1 The drivers によると、IntersilのPRISMに対応しているドライバは
+orinoco
+    Prism 2に基づいたIntersilとAgere、Symbolのfirmwareに対応している。
+    Linux 2.4.3以降でkernelに含まれている(kernel-source/drivers/net/wireless/*)。
+linux-wlan-ng
+    Intersilのサポートを受け書かれたドライバで、
+    Intersilのfirmwareに基づいたカードをほぼ完全にサポートしている。
+prism2
+    IntersilのNDAのdocumentをもっている人により書かれたドライバ。
+    IntersilのカードでAccessPointとしての動作をサポートしている。
+    linux-wlan-ngに比べ、より小さく、シンプル。
+である。
+
+Chapter 5 The orinoco driver のSection 5.1 Driver structureでは、orinocoドライバの構造が記載されれいている。
+3層になっていて、hermes.oとorinoco.oはlow-level hardware accessとnetwork driver logicを取り扱い、実際にデバイスをconfigするprobeのためのコードは含まれていない。その機能は、より高いレベルの"initialisation" moduleにより提供される。
+orinoco_cs.oは、PCMCIAカードをサポートしたPCMCIAカードサービスクライアントのためのコードが含まれている。
+  orinoco_cs.o Initialisation module
+  orinoco.o    Driver core
+  hermes.o     Low-level hardware access
+
+
+================================================================
+Wireless LAN resources for Linux
+http://www.hpl.hp.com/personal/Jean_Tourrilhes/
+Linux Wireless LAN Howto
+http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/
+からも同様の情報が得られる。(以下必要な部分の和訳)
+
+  Section 2.3 Wavelan IEEE/Orinoco, PrismII and Symbol cards
+  Driver name:  Pcmcia: orinoco_cs.o
+  Where:        Linux kernel (2.4.21 ; 2.5.71)
+                        Pcmcia package (3.1.34)
+                        http://www.ozlabs.org/people/dgibson/dldwd
+                        http://savannah.nongnu.org/projects/orinoco/
+  Web page:     http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/Orinoco.html
+  
+    Section 2.3.1 The device
+    Lucent Wavelan-IEEE/Orinoco, Intersil PrismII, Symbol High Rateで同じMAC (Medium Access Controller) controllerを使っている。
+    このドライバはこれらのデバイスすべてをサポートしようとしている。
+
+    しかし、同じMAC controllerや同じドライバを使っても、これらのデバイスがまったく同じというわけではない。
+    それぞれのベンダが独自のfirmwareをもっているからである。
+
+    さらに、これらのデバイスは同じradio modemと同じアンテナを使ってはいない。
+    PrismIIはradio componentsのレイアウトが大きく異なっている。
+    これが、様々なカードによるcoverageの違い(range and resistance to interference)を生じている。
+
+    Section 2.3.2 The driver
+    wvlan_csは不幸だったので、作られた。
+
+    HCF (Lucentにより提供されるlow level library) はメインテナンスされず、問題点が多くなっていた。
+
+    その現状に我慢するより、wlan-ngやFreeBSDのドライバを見て、
+    wvlan_csのlow levelとhigh level featureの両方を合わせた新しいドライバを書いた。
+    結果として、より読みやすく柔軟なドライバになった。
+    さらに、PrismIIのカードをサポートした。
+    それからWireless Extensions bugを修正し、Symbolのカードをサポートし、kernelに入れた。
+    ドライバは初最dldwd_csと名付けられ、後にorinoco_csと改名された。
+
+    主な目標はWavelan IEEE/Orinoco cardsとOEMをサポートすることと、
+    ドライバはすべてのfirmwareと特徴をサポートすること、
+    少ないbugでwvlan_csで使える特徴をすべてサポートすること。
+
+    さらにAirportがサポートされた。これらのカードはOrinocoカードに似ている。
+    
+    <!-- version upの変遷は省略 -->
+
+    PrismII cardsとクローンのサポートが進行中。
+    さらなるデバッグとテストが必要。
+    しかし、ほとんどの機能は使える。
+    (Ad-Hoc demo mode, IBSS mode, bit-rate, encryption keysは動いているようだ。)
+    アップグレードするfirmwareで暗号化に関係する問題を修正するようだ。
+    しかし、wlan-ngとHostAPドライバはまだ多くの特徴とテストされる余地がある。
+    
+    release v0.8でPrismII cardと一緒に販売されるPLX adaptersもサポートした(orinoco_plxを通して)。
+    これらのアダプタは本当のPcmciaアダプタではなく、カードはPCI cardの様なシステムに見える。
+    ドライバは通常のISA to Pcmcia、またはPCI to Pcmciaアダプタ内のPcmcia cardもサポートする。
+    Pcmcia adapterは認識され、Pcmciaパッケージにより設定される。
+    
+    release v0.11aではPCI Cardをサポートする。
+    standard ドライバは様々なUSBカードをサポートしない。
+    MiniPCIのうちのいくつかはサポートしている。
+
+    最新のversion (c0.13b)では、前のversionで問題になったhardware reset問題のほとんどを解決した。
+    Symbol firmwareに関する修正した。
+    また、多くのパッチが統合されていない。
+    例えば、Wireless ScanningやWireless Events、Monitor modeなど。
+  
+  Section 2.11 Intersil PrismII based cards (the most common 802.11b cards)
+  Driver name:  Pcmcia: prism2_cs.o
+  Where:                http://www.linux-wlan.com/linux-wlan
+  
+    Section 2.11.1 The device
+    PrismIIチップセットはPrismIチップセットの後継で、Intersilにより作られている。
+    Intersilはこのチップセットとreference designを様々なOEMに提供している。
+
+    PrismII cardのように見えるすべてがPrismII cardではない事に注意が必要である。
+    ここではIntersil PrismII chipsetとIntersil firmwareを使っているものを扱う。
+    他のベンダ、例えば、Lucent、Aironet、Symbol、AtmelはPrismII chipsetを使っているが、
+    独自のfirmwareを使っているので、互換性が無い。
+
+    ほとんどのPrismIIベンダはラップトップ用のPcmciaカードを提供している。
+    デスクトップマシン用はPCI-Pcmcia card、PLX card、完全に統合されたPCI cardを提供している。
+    または、USBアダプタを提供するベンダもある。
+    ラップトップはMiniPCI cardを含むこともある。
+
+    PrismIのデザインににて、PrismIIは802.11に完全の互換で、2.4GHz Direct Sequesce modemを含んでいる。
+
+    PrismIとPrismIIチップセットの主な違いは、
+    より高い統合性と高パフォーマンスモデム、
+    AMDコントローラをIntersilの独自設計により置き換えた部分である。
+    高い統合性(8chipを5chipに)は、製品の価格とサイズを尾さえ、インテグレーションを単純にした。
+    あたらしい物理層レイヤ(modem)は、より良いパフォーマンスで、範囲とスピード、バッテリ寿命を広げた。
+    802.11-b標準(5.5, 11Mb/s)に完全対応した。
+    新しいMACコントローラによりほとんどの802.11の機能を扱える。
+    それはドライバの開発を簡単にし、遅いデバイス(palmtop, embedded design)でのパフォーマンスを補助する。
+
+    Prism2.5とPrism3はPrismIIチップセットの進化型である。
+    より高いインテグレーションでありながら、低コストで、下位互換である。
+    ドライバに関しては、この3チップセットは同じように見える。
+    したがって、ドライバはPrismIIをサポートすれば、Prism2.5とPrism3をサポートできる。
+
+    PrismIIのfirmwareは常にもっとも高いクォリティではなく、
+    一つのreleaseから、もう一つのreleaseまでが気まぐれである。
+    card上ととAccess Point上でfirmwareがちゃんと動くか確認する必要がある。
+    例えば、暗号化とIBSS ad-hoc modeはもっとも新しいfirmware (0.8.3とそれ以降)でのみ動作する。
+    multicastはすべてにおいて動作しない。
+    いつも最新のfirmwareに対応したLinuxドライバを入手するにも少し時間がかかる。
+    最新のfirmwareは多く問題を解決し、早期のfirmwareで失われていた特徴を追加している。
+
+    Ad-Hoc modes: 
+    Orinocoカードのように、firmwareは二つのad-hoc modeをサポートしている。
+    Ad-Hoc demo mode(802.11-b互換ではないが、Orinoco Ad-Hoc demo modeとは互換性があると報告されている)と、
+    IBSS Ad-Hoc mode(802.11-b互換)である。
+
+    Section 2.11.2 The driver
+    PrismIカードのドライバを既に書いたAVSからのMark以外にこのドライバを書く適任者はいない。
+    事実、Intersilは我々のために書いたドライバを手に入れるために、Markとパートナになった。
+
+    ドライバは本当に完全に良く書かれている。
+    現在ベータ段階だが、Markはさらなる文書とより多くの特徴のデバッグが必要だと言っている。
+    ドライバはPcmciaとPCIカードを両方サポートしている。
+    このドライバは、Linuxbridging softwareに互換性があり、一般的な802.11インタフェースを含み、
+    full 802.11 MIBをユーザに提供し、Access Pointを構築するかぎを含む。
+    ドライバはconfiguration toolや802.11フレームをダンプするutility、
+    802.11イベントに反応するdeamonと一緒に提供される。
+
+    release 0.1.10では長期的な問題の多くを解決し、ailling list周りの多くのパッチと特徴を含んでいる。
+    このversioは適切なWEP暗号化とAd-Hoc modeをサポートしている。
+    ただし、このドライバは、古いad-hoc modeをサポートしているにも関わらず、
+    IBSS ad-hoc mode (0.1.10とそれ以降)と現在のfirmwareだけをサポートしている。
+
+    ドライバはPcmciaとPLX、PCI cardをサポートする。
+    PLXカードはPCIスロットにPcmciaカードを刺す。
+    しかし、Pcmcia packageを使ってのPcmciaの機能はサポートせず、
+    直接ドライバによりサポートされる。
+    PCIサポートは完全なPCIカードあるいは、MiniPCIカードに対応している。
+    USBサポート(Intersil USB cardだけで、Atmelカードは未対応)も追加された。
+
+  Section 2.12 Intersil PrismII support in the Orinoco driver
+  orinoco driverもほとんどのPrismIIで使える。
+
+  Section 2.13 Intersil PrismII driver with HostAP mode
+  Driver name:  Pcmcia: hostap_cs.o
+  Where:        http://hostap.epitest.fi/
+  
+    Section 2.13.1 The device
+    Section 2.11と同じ。
+
+    標準PrismII firmwareの面白い特徴は、
+    Access Point (HostAP mode)としてホストが動作することを許しているところである。
+    通常のPCにPrism2カードを刺すとAccess Pointになり、他のノードを接続することができる。
+
+    ただし、他のカード(non-PrismII firmware)では、HostAP modeは存在しないあるいは、ドキュメントに書かれていない。
+    また、PrismIIカードに特別なfirmwareをロードすることで、完全なAccess Point機能を実行させることができる。
+
+    Section 2.13.2 The driver
+    様々な他のドライバを参考にして書かれいてるためか、linux-wlan-ngドライバよりとてもシンプルである。
+    
+    ドライバはPrismIIカードの様々な機能(WEP, IBSS Ad-Hoc mode, scanning...)をサポートしている。
+    Wireless Extentionsを完全にサポートしていて、様々な付加情報を/procディレクトリで提供する。
+    標準的なwireless clientとして優れた選択である。
+
+    他のドライバとこのドライバの違いは、HostAP modeをサポートしているところである。
+    このmodeでは、ドライバはAccess Pointとして振舞い、すべての802.11マネージメントが必要になる。
+    このmodeではドライバはLinuxの通常のEthernetブリッジを通してブリッジもする。
+
+    現在、PLXとPCIカードサポートとモニタモード、MAC address based access listとWDSサポートを改良している。
+  
+  Section 2.14 Samsung MagicLAN (binary library driver)
+  PrismII chipsetベースのSamsung MagicLANのx86用binary配布のドライバ
+  (つまりsource codeが無いので、役に立たない)
+
+  Section 2.15 Intersil PrismIndigo, PrismGT and PrismDuette cards</a> (802.11a/802.11g)
+  Driver name:  Cardbus : islpci_cb.o
+  Where:        http://ruslug.rutgers.edu/~mcgrof/802.11g/
+  
+  The device
+  Prism IndigoとPrism GT、Prism DuetteはIntersilの第3世代チップセットで、第2世代のPrismIIとPrism3チップセットの後続。
+  Prism Indigoが最初にreleaseされ、802.11a (5GHzバンド)をサポートした。
+  Prism GTは802.11g (と802.11b 2.4GHz)をサポートする。
+  Prism Duetteは802.11aと802.11g (2.4GHzと5GHzバンド)をサポートする。
+  以前のPrismIIデザインでは限界があったので、この新しいチップセットは全面的に新しいデザインを採用した。
+
+  このチップセットは高い統合性(2または3チップソリューション)をもっている。
+  以前のPrismチップセットのように、802.11マネージメントのほとんどをfirmwareで取り扱う。
+  しかし、bus interfaceはPCI DMA (CPUのオーバヘッドが小さく、速い)のみである。
+  MACは通常の802.11の特徴とhardware WEP、AES暗号化をサポートし、firmwareは完全にAccess Pointとして動作できる。
+  無線装置は802.11aと802.11gをサポートするために必要なOFDM変調器を実装している。
+
+  Prism Indigoチップセットを使った製品は見た事が無い。多分将来も見ないだろう。
+  少しの通常のIntersil partnersはPrism GTとPrism Duetteチップセットを基に802.11gカードの販売を始めた。
+
+  The driver
+  このドライバはIntersil自身により書かれ、GPLでreleaseされた。
+  これはOpenSourceにとって大きな貢献である。
+  
+  このプロジェクトは現在、早期のフェーズである。
+  しかし、既に大体使える。
+
+  ドライバはconfiguration toolを提供するが、基本的なWireless Extensionもサポートしている。
+  ドライバはFirmwareAP modeを使いAccess Pointとしても動作する
+  (すべてのAPマネージメントはfirmwareにより取り扱われる)。
+    
+
+================================================================
+orinoco (Linux)
+Web Pages: http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/Orinoco.html
+web pageの中で新しく得た情報のみ書くと、
+        他のドライバ(linux-wlan-ngやHostAP)はPrismIIの一つのみをサポートするが、
+        OrinocoはLucent/Agere Orinoco Pcmcia card and Apple AirportとIntersil PrismII Pcmcia/PLX/PCI cars、
+        Symbol Spectrum24 HR Pcmcia carsの3つ全てをサポートする。
+        Orinocoドライバは起動時に、3つのハードウェアのうちどれを検出したか、
+        firmwareのversion numberと一緒にmessage logに書き込む。
+File: uClinux-dist/linux-2.4.x/drivers/net/wireless/*
+orinoco_cs.c: PC Card (PCMCIA)ドライバ
+orinoco_plx.c: PC Cardの刺さるPCI/ISA アダプタドライバ
+orinoco_pci.c: PrismIIが直接搭載されたPCIカードドライバ
+
+prism2 (Linux)
+http://www.linux-wlan.com/
+linux-wlan-ng-0.2.1-pre9.tar.gz
+
+hostap (Linux)
+http://hostap.epitest.fi/
+hostap-0.0.4.tar.gz
+
+prism54 (Linux)
+Linux Driver for the 802.11G Prism GT / Prism Duette / Prism Indigo Chipsets
+http://prism54.org/
+
+FreeBSD 4.8-RELEASE
+/usr/src/sys/dev/wi/*
+
+NetBSD
+/src/sys/dev/ic/wi*
+(基本的にはFreeBSDからportingしている模様。)

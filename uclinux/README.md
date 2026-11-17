@@ -363,7 +363,7 @@ uClibc (libc.a) を uClinux とは関係なく利用
 uClinux の userland でなくても、newlib を C library として使うように uClibc も利用できる。
 ここでは H8 のプログラム開発を OS 無しで行なっている場合、uClibc の利用方法を簡単に記述する。
 
-sample program: [sample.tar.bz2](https://www.dropbox.com/s/khuf0780m8k495o/sample.tar.bz2?dl=0)
+sample program: [sample.tar.bz2](sample.tar.bz2)
 make すると以下のような command が実行される。
 ```
 $ h8300-elf-gcc -mh -mrelax -mint32  -nostartfiles -nodefaultlibs \
@@ -441,7 +441,7 @@ elf (Executable and Linking Format) からflt (Binary Flat Format) にうまく�
 
 `ld-elf2flt.in` を修正した。
 patchを作りました。`-m h8300helf` を強引に追加。
-[elf2flt.h8300helf.diff.gz](https://www.dropbox.com/s/ljh65fejfw0r5pj/elf2flt.h8300helf.diff.gz?dl=0) ($ cvs update @ May 21, 2003対応)
+[elf2flt.h8300helf.diff.gz](elf2flt.h8300helf.diff.gz) ($ cvs update @ May 21, 2003対応)
 ```
 $ cd elf2flt
 $ make distclean
@@ -462,7 +462,7 @@ $ make
 そこで `printf("hello world!\n");` のみの簡単な `init.c` を書き動作を確認した。
 ついでに、userland program の make 方法の確認にもなりそう。
 
-[init.tar.bz2](https://www.dropbox.com/s/fv8rla5zcqda4cz/init.tar.bz2?dl=0)
+[init.tar.bz2](init.tar.bz2)
 ```
 $ tar jxvf init.tar.bz2
 $ cd init
@@ -564,7 +564,7 @@ userland program を make したときの `h8300-elf-ld` (elf2flt) の DWARF Err
 
 elf2flt は .elf, .elf2flt, .gdb を作ってから flt を作るが、elf から flt を作るように強引に改変した。
 
-patch [elf2flt.h8300helf.patch.gz](https://www.dropbox.com/s/38q0zilehjftpa9/elf2flt.h8300helf.patch.gz?dl=0)
+patch [elf2flt.h8300helf.patch.gz](elf2flt.h8300helf.patch.gz)
 
 June 8, 2003 現在の elf2flt [cvs.uclinux.org] に対応)を当てて再 install。
 (上記の`-m h8300helf` の patch を含んでます。debug のための情報を冗長に出力)
@@ -585,7 +585,7 @@ $ make
 #### Build
 http://www.uclinux.org/pub/uClinux/dist/uClinux-dist-20030522.tar.gz
 を download して展開。patch を当て、make するだけで kernel と root file system ができる。
-[aki3068net-dist-20030522-20030614.patch.gz](https://www.dropbox.com/s/2iyowp50h4x9310/aki3068net-dist-20030522-20030614.patch.gz?dl=0) (network非対応)
+[aki3068net-dist-20030522-20030614.patch.gz](aki3068net-dist-20030522-20030614.patch.gz) (network非対応)
 
 この patch は `vender/Hitachi/` 以下に `aki3068net` を作り、中に file を作る。
 
@@ -611,7 +611,7 @@ $ LANG=C make
 
 network 対応 patch (Jun 18, 2003)
 
-[aki3068net-dist-20030522-20030618.patch.gz](https://www.dropbox.com/s/g07cox78pha79lm/aki3068net-dist-20030522-20030618.patch.gz?dl=0)
+[aki3068net-dist-20030522-20030618.patch.gz](aki3068net-dist-20030522-20030618.patch.gz)
 ```
 $ tar zxvf uClinux-dist-20030522.tar.gz
 $ cd uClinux-dist/
@@ -718,8 +718,8 @@ SCI0 に接続した PC (ポート)から boot message が流れる。
 ### Userland sample
 uClinux-distで作ったkernel上で動くuserland programのサンプル。
 sample program:
-- [hello.c](https://www.dropbox.com/s/q9prullynq0msx3/hello.c?dl=0)
-- [Makefile](https://www.dropbox.com/s/tg6eu4n6sgubgfw/Makefile?dl=0)
+- [hello.c](hello.c)
+- [Makefile](Makefile)
 `make` して、`uClinux-dist/romfs/bin` 以下に格納。
 `uClinux-dist/` のディレクトリで `make image` すると `uClinux-dist/images/rootfs.img` に `hello` が含まれる。
 上記と同様に kernel を boot し、hello を実行。

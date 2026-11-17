@@ -1,0 +1,70 @@
+Socket 0:
+  offset 0x02, tuple 0x01, link 0x03
+    00 00 ff 
+  dev_info
+    NULL 0ns, 512b
+
+  offset 0x07, tuple 0x17, link 0x04
+    67 5a 08 ff 
+  attr_dev_info
+    SRAM 500ns, 1kb
+
+  offset 0x0d, tuple 0x1d, link 0x05
+    03 67 5a 08 ff 
+
+  offset 0x14, tuple 0x15, link 0x19
+    05 00 42 55 46 46 41 4c 4f 00 57 4c 49 2d 43 46 
+    2d 53 31 31 47 00 00 00 ff 
+  vers_1 5.0, "BUFFALO", "WLI-CF-S11G", "", ""
+
+  offset 0x2f, tuple 0x20, link 0x04
+    6f 02 0b 03 
+  manfid 0x026f, 0x030b
+
+  offset 0x35, tuple 0x21, link 0x02
+    06 00 
+  funcid network_adapter
+
+  offset 0x39, tuple 0x22, link 0x02
+    01 07 
+  lan_technology wireless
+
+  offset 0x3d, tuple 0x22, link 0x05
+    02 40 42 0f 00 
+  lan_speed 1 mb/sec
+
+  offset 0x44, tuple 0x22, link 0x05
+    02 80 84 1e 00 
+  lan_speed 2 mb/sec
+
+  offset 0x4b, tuple 0x22, link 0x05
+    02 60 ec 53 00 
+  lan_speed 5 mb/sec
+
+  offset 0x52, tuple 0x22, link 0x05
+    02 c0 d8 a7 00 
+  lan_speed 11 mb/sec
+
+  offset 0x59, tuple 0x22, link 0x02
+    03 07 
+  lan_media 2.4_GHz
+
+  offset 0x5d, tuple 0x22, link 0x08
+    04 06 00 07 40 0f 15 6b 
+  lan_node_id 00 07 40 0f 15 6b
+
+  offset 0x67, tuple 0x22, link 0x02
+    05 01 
+  lan_connector Closed connector standard
+
+  offset 0x6b, tuple 0x1a, link 0x07
+    03 01 e0 03 00 00 01 
+  config base 0x03e0 mask 0x0001 last_index 0x01
+
+  offset 0x74, tuple 0x1b, link 0x10
+    c1 01 19 77 b5 1e 35 b5 3c 36 36 05 46 ff ff ff 
+  cftable_entry 0x01 [default]
+    Vcc Vnom 3300mV Vmin 3V Vmax 3600mV Iavg 300mA
+    Ipeak 300mA Idown 10mA
+    io 0x0000-0x003f [lines=6] [16bit]
+    irq mask 0xffff [level] [pulse] [shared]

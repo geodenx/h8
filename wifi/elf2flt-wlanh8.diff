@@ -1,0 +1,59 @@
+diff -ur elf2flt-cvs/Makefile.in elf2flt-wlanh8/Makefile.in
+--- elf2flt-cvs/Makefile.in	Sun Jan  4 10:39:08 2004
++++ elf2flt-wlanh8/Makefile.in	Wed Jan 14 14:43:19 2004
+@@ -40,10 +40,10 @@
+ all: $(PROGS)
+ 
+ $(PROG_ELF2FLT): elf2flt.c stubs.c Makefile
+-	$(CC) $(CCFLAGS) $(LDFLAGS) -o $@ $(srcdir)/elf2flt.c $(srcdir)/stubs.c $(LIBS)
++	$(CC) $(CCFLAGS) $(LDFLAGS) -o $@ $(srcdir)/elf2flt.c $(srcdir)/stubs.c -L$(LIBS) -lbfd -liberty
+ 
+ $(PROG_FLTHDR): flthdr.c Makefile
+-	$(CC) $(CCFLAGS) $(LDFLAGS) -o $@ $(srcdir)/flthdr.c $(LIBS)
++	$(CC) $(CCFLAGS) $(LDFLAGS) -o $@ $(srcdir)/flthdr.c -L$(LIBS) -lbfd -liberty
+ 
+ clean:
+ 	-rm -f $(PROGS) *.$(OBJEXT)
+diff -ur elf2flt-cvs/elf2flt.c elf2flt-wlanh8/elf2flt.c
+--- elf2flt-cvs/elf2flt.c	Sun Jan  4 10:39:09 2004
++++ elf2flt-wlanh8/elf2flt.c	Wed Jan 14 14:49:22 2004
+@@ -718,6 +718,9 @@
+ 					sym_addr = (*(q->sym_ptr_ptr))->value;
+ 					sym_vma = bfd_section_vma(abs_bfd, sym_section);
+ 					sym_addr += sym_vma + q->addend;
++					/* no reloc from I/O regs and CF Card */
++					if (sym_addr >= 0x600000)
++						relocation_needed = 0;
+ 					break;
+ 				case R_H8_DIR32:
+ 				case R_H8_DIR32A16: /* currently 32,  could be made 16 */
+diff -ur elf2flt-cvs/ld-elf2flt.in elf2flt-wlanh8/ld-elf2flt.in
+--- elf2flt-cvs/ld-elf2flt.in	Tue Jul 22 20:31:20 2003
++++ elf2flt-wlanh8/ld-elf2flt.in	Wed Jan 14 14:30:25 2004
+@@ -77,6 +77,8 @@
+ 		ARG1="$ARG1 $FINAL_ONLY"
+ 		NEWLDSCRIPT=`mktemp /tmp/flt-XXXXXX`
+ 		SEDOP=" -e s/^R_RODAT// -e /^W_RODAT/d"
++		# H8/300 ld emulation option
++		EMUL=`echo $ARG1|awk 'BEGIN {RS=" "}; /^h8300[hs]elf$/ {print "-m "$1}'`
+ 		if [ "$MOVDAT" ]
+ 		then
+ 			$LINKER -r -d -o "$OFILE.elf2flt" $ARG1  || exit $?
+@@ -126,12 +128,12 @@
+ 
+ 		if [ "@got_check@" = "no" ]
+ 		then
+-		 $LINKER $SDIRS -T $LDSCRIPT -Ur -d -o "$OFILE.elf" $ARG1         ||exit $?
+-		 $LINKER $SDIRS -T $LDSCRIPT -o "$OFILE.gdb" $ARG1                ||exit $?
++		 $LINKER $SDIRS -T $LDSCRIPT -Ur -d -o "$OFILE.elf" $ARG1               ||exit $?
++		 $LINKER $SDIRS -T $LDSCRIPT -o "$OFILE.gdb" $ARG1                      ||exit $?
+ 		else
+-		 $LINKER -r -d -o "$OFILE.elf2flt" $ARG1                          ||exit $?
+-		 $LINKER $SDIRS -T $LDSCRIPT -Ur -o "$OFILE.elf" "$OFILE.elf2flt" ||exit $?
+-		 $LINKER $SDIRS -T $LDSCRIPT -o "$OFILE.gdb" "$OFILE.elf2flt"     ||exit $?
++		 $LINKER -r -d -o "$OFILE.elf2flt" $ARG1                                ||exit $?
++		 $LINKER $EMUL $SDIRS -T $LDSCRIPT -Ur -o "$OFILE.elf" "$OFILE.elf2flt" ||exit $?
++		 $LINKER $EMUL $SDIRS -T $LDSCRIPT -o "$OFILE.gdb" "$OFILE.elf2flt"     ||exit $?
+ 		 rm -f "$OFILE.elf2flt"
+ 		fi
+ 		if grep _GLOBAL_OFFSET_TABLE_ "$OFILE.gdb" > /dev/null 

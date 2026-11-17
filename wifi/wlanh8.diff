@@ -1,0 +1,318 @@
+diff -Nru uClinux-dist-h8300/linux-2.4.x/arch/h8300/platform/h8300h/aki3068net/crt0_ram.S dist/linux-2.4.x/arch/h8300/platform/h8300h/aki3068net/crt0_ram.S
+--- uClinux-dist-h8300/linux-2.4.x/arch/h8300/platform/h8300h/aki3068net/crt0_ram.S	Mon Jul 28 00:11:38 2003
++++ dist/linux-2.4.x/arch/h8300/platform/h8300h/aki3068net/crt0_ram.S	Tue Jan 20 17:39:39 2004
+@@ -39,6 +39,14 @@
+ 	ldc	#0x80,ccr
+ 
+ 	/* Peripheral Setup */
++	mov.b   #0xee,r0l	/* P8DDR = 0xEE; b'11101110 Enable ^CS1, ^CS2 ^CS3 */
++	mov.b	r0l,@0xfee007:24
++	mov.b	#0x1f,r0l	/* BSC.CSCR.BYTE = 0x1f; enable ^CS4 */
++	mov.b	r0l,@0xfee01f:24
++	mov.b	#0xc7,r0l	/* BSC.BCR.BYTE (0xfee024): C7 */
++	mov.b	r0l,@0xfee024:24
++	mov.b	#0x3c,r0l	/* BSC.DRCRA.BYTE (0xfee026): 3C */
++	mov.b   r0l,@0xfee026:24
+ 	
+ #if defined(CONFIG_BLK_DEV_BLKMEM)
+ 	/* move romfs image */
+diff -Nru uClinux-dist-h8300/linux-2.4.x/drivers/net/wireless/Config.in dist/linux-2.4.x/drivers/net/wireless/Config.in
+--- uClinux-dist-h8300/linux-2.4.x/drivers/net/wireless/Config.in	Wed Dec  4 10:10:49 2002
++++ dist/linux-2.4.x/drivers/net/wireless/Config.in	Tue Feb  3 21:35:59 2004
+@@ -12,6 +12,10 @@
+    dep_tristate '    Apple Airport support (built-in)' CONFIG_APPLE_AIRPORT $CONFIG_HERMES
+ fi
+ 
++if [ "$CONFIG_NET_ISA" = "y" ]; then
++   dep_tristate '    Wlan-h8 support (EXPERIMENTAL)' CONFIG_WLANH8_HERMES $CONFIG_HERMES $CONFIG_EXPERIMENTAL 
++fi
++
+ if [ "$CONFIG_PCI" = "y" ]; then
+    dep_tristate '    Hermes in PLX9052 based PCI adaptor support (Netgear MA301 etc.) (EXPERIMENTAL)' CONFIG_PLX_HERMES $CONFIG_HERMES $CONFIG_EXPERIMENTAL
+    dep_tristate '    Prism 2.5 PCI 802.11b adaptor support (EXPERIMENTAL)' CONFIG_PCI_HERMES $CONFIG_HERMES $CONFIG_EXPERIMENTAL
+diff -Nru uClinux-dist-h8300/linux-2.4.x/drivers/net/wireless/Makefile dist/linux-2.4.x/drivers/net/wireless/Makefile
+--- uClinux-dist-h8300/linux-2.4.x/drivers/net/wireless/Makefile	Mon Sep 30 02:17:36 2002
++++ dist/linux-2.4.x/drivers/net/wireless/Makefile	Tue Feb  3 20:55:52 2004
+@@ -17,6 +17,7 @@
+ obj-$(CONFIG_HERMES)		+= orinoco.o hermes.o
+ obj-$(CONFIG_PCMCIA_HERMES)	+= orinoco_cs.o
+ obj-$(CONFIG_APPLE_AIRPORT)	+= airport.o
++obj-$(CONFIG_WLANH8_HERMES)	+= orinoco_wlanh8.o
+ obj-$(CONFIG_PLX_HERMES)	+= orinoco_plx.o
+ obj-$(CONFIG_PCI_HERMES)	+= orinoco_pci.o
+ 
+diff -Nru uClinux-dist-h8300/linux-2.4.x/drivers/net/wireless/orinoco_wlanh8.c dist/linux-2.4.x/drivers/net/wireless/orinoco_wlanh8.c
+--- uClinux-dist-h8300/linux-2.4.x/drivers/net/wireless/orinoco_wlanh8.c	Thu Jan  1 09:00:00 1970
++++ dist/linux-2.4.x/drivers/net/wireless/orinoco_wlanh8.c	Thu Feb  5 15:36:34 2004
+@@ -0,0 +1,231 @@
++/* orinoco_wlanh8.c
++ * 
++ * Driver for Prism II devices which would usually be driven by orinoco_cs,
++ * but are connected to the ISA bus by a wlan-h8.
++ * This driver is based on orinoco_plx.c
++ *
++ * Modified by OKAZAKI Atsuya <okazaki@zd.wakwak.com>
++ *
++ * orinoco_plx.c
++ * Copyright (C) 2001 Daniel Barlow <dan@telent.net>
++ *
++ * The contents of this file are subject to the Mozilla Public License
++ * Version 1.1 (the "License"); you may not use this file except in
++ * compliance with the License. You may obtain a copy of the License
++ * at http://www.mozilla.org/MPL/
++ *
++ * Software distributed under the License is distributed on an "AS IS"
++ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
++ * the License for the specific language governing rights and
++ * limitations under the License.
++ *
++ * Alternatively, the contents of this file may be used under the
++ * terms of the GNU General Public License version 2 (the "GPL"), in
++ * which case the provisions of the GPL are applicable instead of the
++ * above.  If you wish to allow the use of your version of this file
++ * only under the terms of the GPL and not to allow others to use your
++ * version of this file under the MPL, indicate your decision by
++ * deleting the provisions above and replace them with the notice and
++ * other provisions required by the GPL.  If you do not delete the
++ * provisions above, a recipient may use your version of this file
++ * under either the MPL or the GPL.
++ */
++
++#include <linux/config.h>
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/sched.h>
++#include <linux/ptrace.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/timer.h>
++#include <linux/ioport.h>
++#include <asm/uaccess.h>
++#include <asm/io.h>
++#include <asm/system.h>
++#include <linux/netdevice.h>
++#include <linux/if_arp.h>
++#include <linux/etherdevice.h>
++#include <linux/wireless.h>
++#include <linux/list.h>
++#include <linux/wireless.h>
++#include <linux/fcntl.h>
++
++#include <pcmcia/cisreg.h>
++
++#include "hermes.h"
++#include "orinoco.h"
++
++static char dev_info[] = "orinoco_wlanh8";
++
++#define WLANH8_ATTR_ADDR	0x600000
++#define WLANH8_IO_ADDR		0x800000
++
++#define WLANH8_IRQ		4
++#define WLANH8_IRQ_VECTOR       (12 + WLANH8_IRQ)
++
++#define COR_OFFSET    (0x3e0)	/* COR attribute offset of Prism2 PC card */
++#define COR_VALUE     (COR_LEVEL_REQ | COR_FUNC_ENA) /* Enable PC card with interrupt in level trigger */
++
++static const u8 cis_magic[] = {
++	0x01, 0x03, 0x00, 0x00, 0xff, 0x17, 0x04, 0x67
++};
++
++static int orinoco_wlanh8_init_one(void)
++/* 	struct pci_dev *pdev, */
++/* 	const struct pci_device_id *ent) */
++{
++	int err = 0;
++ 	u8 *attr_mem = NULL;
++	u8 reg;
++	struct orinoco_private *priv = NULL;
++	unsigned long pccard_ioaddr = 0;
++	unsigned long pccard_iolen = 0;
++	struct net_device *dev = NULL;
++	int netdev_registered = 0;
++	int i;
++
++	/* Resource 2 is mapped to the PCMCIA space */
++ 	attr_mem = ioremap(WLANH8_ATTR_ADDR, PAGE_SIZE);
++	if (! attr_mem)
++		goto fail;
++
++	printk(KERN_DEBUG "orinoco_wlanh8: CIS: ");
++	for (i = 0; i < 16; i+=2) {
++		printk("%02X:", (attr_mem[i]));
++		/* Verify whether PC card is present */
++		/* FIXME: we probably need to be smarted about this */
++		if (attr_mem[i] != cis_magic[i>>1]) {
++			printk(KERN_ERR "\norinoco_wlanh8: The CIS value of Prism2 PC card is invalid.\n");
++			err = -EIO;
++			goto fail;
++		}
++	}
++	printk("\n");
++
++	/* PCMCIA COR is the first byte following CIS: this write should
++	 * enable I/O mode and select level-triggered interrupts */
++	attr_mem[COR_OFFSET] = COR_VALUE;
++	mdelay(1);
++	reg = attr_mem[COR_OFFSET];
++	if (reg != COR_VALUE) {
++		printk(KERN_ERR "orinoco_wlanh8: Error setting COR value (reg=%x)\n", reg);
++		goto fail;
++	}			
++
++	iounmap(attr_mem);
++	attr_mem = NULL; /* done with this now, it seems */
++
++	/* and 3 to the PCMCIA slot I/O address space */
++	pccard_ioaddr = WLANH8_IO_ADDR;
++	pccard_iolen = 64;
++	if (! request_region(pccard_ioaddr, pccard_iolen, dev_info)) {
++		printk(KERN_ERR "orinoco_wlanh8: I/O resource 0x%lx @ 0x%lx busy\n",
++		       pccard_iolen, pccard_ioaddr);
++		pccard_ioaddr = 0;
++		err = -EBUSY;
++		goto fail;
++	}
++
++	dev = alloc_orinocodev(0, NULL);
++	if (! dev) {
++		err = -ENOMEM;
++		goto fail;
++	}
++
++	priv = dev->priv;
++	dev->base_addr = pccard_ioaddr;
++	SET_MODULE_OWNER(dev);
++	dev->irq = WLANH8_IRQ_VECTOR;
++
++	printk(KERN_DEBUG
++	       "Detected Orinoco/Prism2 wlan-h8 device at irq:%d, io addr:0x%lx\n",
++	       dev->irq, pccard_ioaddr);
++
++	hermes_struct_init(&(priv->hw), dev->base_addr,
++			HERMES_IO, HERMES_16BIT_REGSPACING);
++
++/* 	err = request_irq(dev->irq, orinoco_interrupt, SA_SHIRQ, dev_info, priv); */
++	err = request_irq(dev->irq, orinoco_interrupt, 0, dev_info, priv); /* not SA_SHIRQ */
++	if (err) {
++		printk(KERN_ERR "orinoco_wlanh8: Error allocating IRQ %d.\n", dev->irq);
++		err = -EBUSY;
++		goto fail;
++	}
++
++	err = register_netdev(dev);
++	if (err)
++		goto fail;
++	netdev_registered = 1;
++
++	return 0;		/* succeeded */
++
++ fail:	
++	printk(KERN_DEBUG "orinoco_wlanh8: init_one(), FAIL!\n");
++
++	if (priv) {
++		if (netdev_registered)
++			unregister_netdev(dev);
++		
++		if (dev->irq)
++			free_irq(dev->irq, priv);
++		
++		kfree(priv);
++	}
++
++	if (pccard_ioaddr)
++		release_region(pccard_ioaddr, pccard_iolen);
++
++	if (attr_mem)
++		iounmap(attr_mem);
++
++/* 	pci_disable_device(pdev); */
++
++	return err;
++}
++
++/* static void __devexit orinoco_wlanh8_remove_one(struct pci_dev *pdev) */
++/* { */
++/* 	struct net_device *dev = pci_get_drvdata(pdev); */
++/* 	struct orinoco_private *priv = dev->priv; */
++
++/* 	if (! dev) */
++/* 		BUG(); */
++/* 	unregister_netdev(dev); */
++/* 	if (dev->irq) */
++/* 		free_irq(dev->irq, priv); */
++/* 	kfree(dev); */
++/* 	release_region(pci_resource_start(pdev, 3), pci_resource_len(pdev, 3)); */
++/* } */
++
++static char version[] __initdata = "orinoco_wlanh8.c (OKAZAKI Atsuya <okazaki@zd.wakwak.com>)";
++MODULE_AUTHOR("OKAZAKI Atsuya <okazaki@zd.wakwak.com>");
++MODULE_DESCRIPTION("Driver for wireless LAN cards using wlan-h8");
++#ifdef MODULE_LICENSE
++MODULE_LICENSE("Dual MPL/GPL");
++#endif
++
++static int __init orinoco_wlanh8_init(void)
++{
++	printk(KERN_DEBUG "%s\n", version);
++	return orinoco_wlanh8_init_one();
++}
++
++/* extern void __exit orinoco_wlanh8_exit(void) */
++/* { */
++/* 	current->state = TASK_UNINTERRUPTIBLE; */
++/* 	schedule_timeout(HZ); */
++/* } */
++
++module_init(orinoco_wlanh8_init);
++/* module_exit(orinoco_wlanh8_exit); */
++
++/*
++ * Local variables:
++ *  c-indent-level: 8
++ *  c-basic-offset: 8
++ *  tab-width: 8
++ * End:
++ */
+diff -Nru uClinux-dist-h8300/linux-2.4.x/include/asm-h8300/io.h dist/linux-2.4.x/include/asm-h8300/io.h
+--- uClinux-dist-h8300/linux-2.4.x/include/asm-h8300/io.h	Sun May 18 00:14:33 2003
++++ dist/linux-2.4.x/include/asm-h8300/io.h	Wed Feb  4 23:50:47 2004
+@@ -43,12 +43,16 @@
+ #define readb(addr) \
+     ({ unsigned char __v = (*(volatile unsigned char *) (addr)); __v; })
+ #define readw(addr) \
+-    ({ unsigned short __v = (*(volatile unsigned short *) (addr)); __v; })
++    ({ unsigned short __v = (*(volatile unsigned char *) (addr)); \
++    __v += (*(volatile unsigned char *) ((addr)+1)) << 8; \
++    __v; })
+ #define readl(addr) \
+     ({ unsigned int __v = (*(volatile unsigned int *) (addr)); __v; })
+ 
+ #define writeb(b,addr) (void)((*(volatile unsigned char *) (addr)) = (b))
+-#define writew(b,addr) (void)((*(volatile unsigned short *) (addr)) = (b))
++#define writew(b,addr) \
++    ({(void)((*(volatile unsigned char *) (addr)) = ((unsigned char)(b))); \
++    (void)((*(volatile unsigned char *) (addr+1)) = ((unsigned char)(b>>8)));})
+ #define writel(b,addr) (void)((*(volatile unsigned int *) (addr)) = (b))
+ 
+ /*
+@@ -80,7 +84,7 @@
+ 	volatile unsigned short *ap = (volatile unsigned short *) addr;
+ 	unsigned short *bp = (unsigned short *) buf;
+ 	while (len--)
+-		*ap = _swapw(*bp++);
++		*ap = *bp++;
+ }
+ 
+ static inline void io_outsl(unsigned int addr, void *buf, int len)
+@@ -104,7 +108,7 @@
+ 	volatile unsigned short *ap = (volatile unsigned short *) addr;
+ 	unsigned short *bp = (unsigned short *) buf;
+ 	while (len--)
+-		*bp++ = _swapw(*ap);
++		*bp++ = *ap;
+ }
+ 
+ static inline void io_insl(unsigned int addr, void *buf, int len)
